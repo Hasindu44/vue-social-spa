@@ -1,7 +1,21 @@
 <template>
-  <div v-if="post">
-    <h1 class="text-3xl font-bold mb-4">{{ post.title }}</h1>
-    <p class="text-gray-700">{{ post.body }}</p>
+  <div v-if="post" class="max-w-xl mx-auto bg-white shadow rounded-lg overflow-hidden">
+
+    <img
+      :src="`https://picsum.photos/seed/${post.id}/800/500`"
+      class="w-full object-cover"
+    />
+
+    <div class="p-4">
+      <h1 class="text-xl font-bold mb-2">
+        {{ post.title }}
+      </h1>
+
+      <p class="text-gray-700">
+        {{ post.body }}
+      </p>
+    </div>
+
   </div>
 
   <div v-else class="text-center mt-10">
