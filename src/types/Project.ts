@@ -1,12 +1,12 @@
 export interface Project {
   id: number;
-  title: string;       // Project Title
-  body: string;        // Technical Description
-  tags: string[];      // Tech Stack (Languages/Tools)
+  title: string;
+  body: string;
+  userId: number;
+  tags: string[];
   reactions: {
-    likes: number;    
+    likes: number;
     dislikes: number;
   };
-  views: number;       // Project popularity
-  userId: number;      // Lead Developer ID
+  views: number;
 }
