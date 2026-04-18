@@ -1,10 +1,13 @@
 <template>
   <div class="flex min-h-screen font-sans antialiased bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     
-    <nav class="fixed left-0 top-0 z-50 h-screen bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-3 w-[72px] hover:w-64 transition-all duration-300 ease-in-out group flex flex-col">
+    <nav 
+      v-if="!isLoginPage"
+      class="fixed left-0 top-0 z-50 h-screen bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-3 w-[72px] hover:w-64 transition-all duration-300 ease-in-out group flex flex-col"
+    >
       <div class="mb-10 h-10 flex items-center px-3 overflow-hidden">
         <div class="min-w-[24px]">
-          <Cpu :size="28" class="text-blue-600 stroke-[2.5]" />
+          <Cpu :size="28" class="text-blue-600 dark:text-blue-400 stroke-[2.5]" />
         </div>
         <span class="ml-4 text-xl font-black tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
           DEVPULSE
@@ -32,7 +35,8 @@
         </RouterLink>
       </div>
 
-      <div class="mt-auto pb-4 space-y-2">
+      <div class="mt-auto pb-4 space-y-2 border-t border-slate-200 dark:border-slate-800 pt-4">
+        
         <button @click="toggleTheme" class="flex items-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 w-full transition-all overflow-hidden text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white">
           <div class="min-w-[24px] flex justify-center">
             <component :is="isDark ? Sun : Moon" :size="24" :stroke-width="1.5" />
@@ -42,30 +46,38 @@
           </span>
         </button>
 
-        <button class="flex items-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 w-full transition-all overflow-hidden text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white">
-          <div class="min-w-[24px] flex justify-center">
-            <Menu :size="24" :stroke-width="1.5" />
+        <button @click="handleLogout" class="flex items-center p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 w-full transition-all overflow-hidden text-red-500 hover:text-red-600 dark:hover:text-red-400 group/logout">
+          <div class="min-w-[24px] flex justify-center transition-transform duration-200 group-hover/logout:scale-110">
+            <LogOut :size="24" :stroke-width="1.5" />
           </div>
           <span class="ml-4 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-            More
+            Log Out
           </span>
         </button>
       </div>
     </nav>
 
-    <main class="flex-1 ml-[72px] overflow-y-auto bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+    <main 
+      class="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900 transition-colors duration-300"
+      :class="{ 'ml-[72px]': !isLoginPage }"
+    >
       <router-view />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { Home, Compass, Heart, PlusSquare, User, Cpu, Menu, MessageSquare, Moon, Sun } from 'lucide-vue-next'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+// Import LogOut icon
+import { Home, Compass, Heart, PlusSquare, User, Cpu, MessageSquare, Moon, Sun, LogOut } from 'lucide-vue-next'
 
 const route = useRoute()
+const router = useRouter()
 const isDark = ref(false)
+
+// Hide the sidebar in login page
+const isLoginPage = computed(() => route.name === 'login')
 
 const navItems = [
   { name: 'Home', path: '/', icon: Home },
@@ -78,10 +90,16 @@ const navItems = [
 
 const isActive = (path: string) => route.path === path
 
-// Handle Dark Mode Toggle
 const toggleTheme = () => {
   isDark.value = !isDark.value
   document.documentElement.classList.toggle('dark', isDark.value)
+}
+
+// Handle Secure Logout
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  router.push('/login')
 }
 
 onMounted(() => {
