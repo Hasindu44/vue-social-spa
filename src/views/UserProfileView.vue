@@ -4,12 +4,11 @@
     <main class="max-w-[935px] mx-auto pt-8 px-4 md:px-5">
       
       <header class="flex flex-col md:flex-row gap-8 md:gap-24 mb-12 items-center md:items-start">
-        
         <div class="flex-shrink-0">
           <div class="w-32 h-32 md:w-40 md:h-40 rounded-full p-1 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500">
             <img 
-              :src="profile?.image || `https://i.pravatar.cc/150?u=1`" 
-              class="w-full h-full rounded-full border-4 border-white dark:border-slate-950 object-cover bg-white"
+            src="https://images.unsplash.com/photo-1539125530496-3ca408f9c2d9?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+            class="w-full h-full rounded-full border-4 border-white dark:border-slate-950 object-cover bg-white"
             />
           </div>
         </div>
@@ -41,13 +40,13 @@
 
           <div class="text-sm text-slate-900 dark:text-white leading-relaxed text-center md:text-left">
             <h2 class="font-bold text-base mb-1">{{ profile?.firstName }} {{ profile?.lastName }}</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-2">Senior {{ profile?.company.title }} @ TechCorp</p>
+            <p class="text-slate-500 dark:text-slate-400 mb-2">Senior {{ profile?.company?.title || 'Engineer' }} @ TechCorp</p>
             <p>Building autonomous systems & mechanical keyboards. ⌨️🤖</p>
             <p>Documentation is my love language.</p>
             
             <a href="#" class="font-bold text-blue-900 dark:text-blue-200 hover:underline flex items-center justify-center md:justify-start gap-1 mt-2">
               <Link2 :size="16" />
-              github.com/{{ profile?.username }}
+              github.com/{{ profile?.username || 'dev' }}
             </a>
           </div>
         </div>
@@ -65,9 +64,7 @@
       </div>
 
       <div class="border-t border-slate-200 dark:border-slate-800 flex justify-center uppercase text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400">
-        <button 
-          class="flex items-center gap-2 py-4 px-6 md:px-8 border-t-2 border-slate-900 dark:border-white text-slate-900 dark:text-white transition-colors"
-        >
+        <button class="flex items-center gap-2 py-4 px-6 md:px-8 border-t-2 border-slate-900 dark:border-white text-slate-900 dark:text-white transition-colors">
           <Grid :size="14" /> POSTS
         </button>
         <button class="flex items-center gap-2 py-4 px-6 md:px-8 border-t-2 border-transparent hover:text-slate-900 dark:hover:text-white transition-colors">
@@ -89,7 +86,7 @@
           class="aspect-square relative group bg-slate-100 dark:bg-slate-900 cursor-pointer overflow-hidden"
         >
           <img 
-            :src="`https://images.unsplash.com/photo-${techImages[post.id % techImages.length]}?auto=format&fit=crop&q=80&w=600`" 
+            :src="post.imageUrl" 
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
           <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-6 text-white font-bold backdrop-blur-[2px]">
@@ -114,29 +111,44 @@ import { ref, onMounted } from 'vue'
 import { Settings, Link2, Grid, Bookmark, UserSquare2, Heart, MessageCircle, Cpu } from 'lucide-vue-next'
 import PostModal from '../components/PostModal.vue'
 import type { Project } from '../types/Project'
-import type { UserProfile } from '../types/User' // The interface we just made!
+import type { UserProfile } from '../types/User'
 
 const profile = ref<UserProfile | null>(null)
 const userPosts = ref<Project[]>([])
 const loading = ref(true)
 const selectedPost = ref<Project | null>(null)
 
-// Same reliable image array to ensure the Modal thumbnails match perfectly
-const techImages = [
-  '1518770660439-4636190af475', // Circuit board macro (Blue)
-  '1581091226825-a6a2a5aee158', // Code on a screen (Dark mode)
-  '1498050108023-c5249f4df085', // Developer working on laptop
-  '1537432376710-34f482704e19', // Arduino board
-  '1526374965328-7f61d4dc18c5', // Matrix/Binary style background
-  '1517077304055-6e89abbf09b0', // Soldering iron on PCB
-  '1581092160562-40aa08e78837', // Server rack lights
-  '1592096304832-fa3148154e1d'  // CPU socket / Motherboard
+const techThemes = [
+  // Robotics
+  { title: "Autonomous Hexapod Robot", tags: ["Robotics", "Embedded"], imageUrl: "https://images.unsplash.com/photo-1593376853899-fbb47a057fa0?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Industrial Arm Controller", tags: ["Robotics", "Hardware"], imageUrl: "https://images.unsplash.com/photo-1518314916381-77a37c2a49ae?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Bipedal Drone Concept", tags: ["Robotics", "C++"], imageUrl: "https://images.unsplash.com/photo-1589254065909-b7086229d08c?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  // AI
+  { title: "Neural Net Poison Detector", tags: ["AI", "Python"], imageUrl: "https://images.unsplash.com/photo-1679403766665-67ed6cd2df30?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Computer Vision Inference", tags: ["AI", "Machine Learning"], imageUrl: "https://images.unsplash.com/photo-1677691824188-3e266886cb27?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" }, // NEW AI IMAGE HERE!
+  // Hardware
+  { title: "High-Current H-Bridge Driver", tags: ["Hardware", "Power"], imageUrl: "https://images.unsplash.com/photo-1591238372338-22d30c883a86?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Custom ESP32 Motor Shield", tags: ["Hardware", "Electronics"], imageUrl: "https://images.unsplash.com/photo-1591238372408-8b98667c0460?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Server Rack Management", tags: ["Hardware", "Sysadmin"], imageUrl: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=1201&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  // PCB
+  { title: "4-Layer Impedance Matched Board", tags: ["PCB", "Hardware"], imageUrl: "https://images.unsplash.com/photo-1580584126903-c17d41830450?q=80&w=1039&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "SMD Soldering Practice Kit", tags: ["PCB", "DIY"], imageUrl: "https://images.unsplash.com/photo-1651340527836-263c5072968e?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Flexible PCB Prototype", tags: ["PCB", "Wearables"], imageUrl: "https://images.unsplash.com/photo-1631378961385-21bee7eb41ad?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "High-Frequency Routing Design", tags: ["PCB", "RF"], imageUrl: "https://images.unsplash.com/photo-1642229408339-572fa3328d10?q=80&w=1073&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  // C++
+  { title: "Singly Linked List Visualizer", tags: ["C++", "DSA"], imageUrl: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Vulkan API Rendering Engine", tags: ["C++", "Graphics"], imageUrl: "https://plus.unsplash.com/premium_photo-1678566154673-a728037f3f00?q=80&w=1002&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Real-Time OS Kernel", tags: ["C++", "Embedded"], imageUrl: "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Physics Engine Optimization", tags: ["C++", "Math"], imageUrl: "https://images.unsplash.com/photo-1604964432806-254d07c11f32?q=80&w=1160&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  // Signals
+  { title: "Real-time FFT Signal Processor", tags: ["Signals", "DSP"], imageUrl: "https://images.unsplash.com/photo-1754734387891-36fcbb96f830?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "RF Spectrum Analyzer", tags: ["Signals", "SDR"], imageUrl: "https://plus.unsplash.com/premium_photo-1663043443501-6be2dc5ea9a6?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Audio Synthesizer Oscillators", tags: ["Signals", "Audio"], imageUrl: "https://images.unsplash.com/photo-1535612731405-1348d22b842f?q=80&w=1227&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  { title: "Radar Tracking System", tags: ["Signals", "Telemetry"], imageUrl: "https://images.unsplash.com/photo-1652715648725-c84d5035e9a2?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" }
 ]
 
 onMounted(async () => {
   try {
-    // 1. Check local storage for the logged-in user. 
-    // If they bypass the login screen, default to User 2 (Michael Williams).
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
     const currentUserId = storedUser.id || 2 
 
@@ -146,12 +158,17 @@ onMounted(async () => {
     const postsRes = await fetch('https://dummyjson.com/posts?limit=12')
     const postData = await postsRes.json()
     
-    userPosts.value = postData.posts.map((p: any) => ({
-      ...p,
-      userId: currentUserId, // Dynamically assign the correct ID
-      tags: ["engineering", "builds"],
-      body: `Log update for build ${p.id}. ${p.body.substring(0, 50)}...`
-    }))
+    userPosts.value = postData.posts.map((p: Project, index: number) => {
+      const theme = techThemes[index % techThemes.length]!
+      return {
+        ...p,
+        userId: currentUserId,
+        title: theme.title,
+        tags: theme.tags,
+        imageUrl: theme.imageUrl,
+        body: `Log update for build ${p.id}. ${p.body.substring(0, 50)}...`
+      }
+    })
 
   } finally {
     loading.value = false

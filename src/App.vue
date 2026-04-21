@@ -69,7 +69,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-// Import LogOut icon
 import { Home, Compass, Heart, PlusSquare, User, Cpu, MessageSquare, Moon, Sun, LogOut } from 'lucide-vue-next'
 
 const route = useRoute()

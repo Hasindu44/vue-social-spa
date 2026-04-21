@@ -14,7 +14,7 @@
 
     <div @click="$emit('openPost', project)" class="block cursor-pointer flex-grow flex flex-col">
       <div class="aspect-square md:aspect-[4/5] bg-slate-100 dark:bg-slate-900 overflow-hidden border-y border-slate-50 dark:border-slate-800 relative group">
-        <img :src="`https://images.unsplash.com/photo-${techImages[project.id % techImages.length]}?auto=format&fit=crop&q=80&w=800`" 
+        <img :src="project.imageUrl" 
              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
       </div>
     </div>
@@ -22,7 +22,10 @@
     <div class="px-4 pt-4 bg-white dark:bg-slate-950 mt-auto">
       <div class="flex justify-between items-center mb-3 text-slate-900 dark:text-white">
         <div class="flex items-center gap-4">
-          <button class="hover:text-slate-500 transition-colors"><Heart :size="26" :stroke-width="1.5" /></button>
+          <button @click="toggleLike" class="transition-colors hover:scale-110" :class="project.isLiked ? 'text-red-500' : 'hover:text-slate-500'">
+            <Heart :size="26" :stroke-width="1.5" :class="project.isLiked ? 'fill-red-500' : ''" />
+          </button>
+          
           <button @click="$emit('openPost', project)" class="hover:text-slate-500 transition-colors"><MessageCircle :size="26" :stroke-width="1.5" /></button>
           <button class="hover:text-slate-500 transition-colors"><Send :size="26" :stroke-width="1.5" /></button>
         </div>
@@ -30,7 +33,7 @@
       </div>
       
       <div class="text-sm font-bold text-slate-900 dark:text-white mb-2">
-        {{ project.reactions?.likes || 128 }} likes
+        {{ project.reactions?.likes || 0 }} likes
       </div>
       
       <p class="text-sm text-slate-800 dark:text-slate-200 leading-relaxed line-clamp-2">
@@ -50,17 +53,17 @@
 import { Heart, MessageCircle, Send, Bookmark } from 'lucide-vue-next'
 import type { Project } from '../types/Project'
 
-defineProps<{ project: Project }>()
+const props = defineProps<{ project: Project }>()
 defineEmits(['openPost'])
 
-const techImages = [
-  '1518770660439-4636190af475', 
-  '1581091226825-a6a2a5aee158', 
-  '1498050108023-c5249f4df085', 
-  '1592096304832-fa3148154e1d',
-  '1526374965328-7f61d4dc18c5', 
-  '1517077304055-6e89abbf09b0', 
-  '1581092160562-40aa08e78837', 
-  '1611162617474-5b21e879e113'
-]
+// Toggle the like count up and down
+const toggleLike = () => {
+  if (props.project.isLiked) {
+    props.project.reactions.likes--;
+    props.project.isLiked = false;
+  } else {
+    props.project.reactions.likes++;
+    props.project.isLiked = true;
+  }
+}
 </script>

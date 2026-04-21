@@ -6,7 +6,7 @@
       
       <div class="w-full md:w-[60%] bg-black flex items-center justify-center relative border-r border-slate-200 dark:border-slate-800">
         <img 
-          :src="`https://images.unsplash.com/photo-${techImages[project.id % techImages.length]}?auto=format&fit=contain&q=80&w=1200`" 
+          :src="project.imageUrl" 
           class="w-full h-full object-contain"
         />
       </div>
@@ -50,7 +50,11 @@
         <div class="border-t border-slate-100 dark:border-slate-800 p-4 bg-white dark:bg-slate-950">
           <div class="flex justify-between items-center mb-3">
             <div class="flex gap-4 text-slate-900 dark:text-white">
-              <button class="hover:text-slate-500 transition-colors"><Heart :size="26" :stroke-width="1.5" /></button>
+              
+              <button @click="toggleLike" class="transition-colors hover:scale-110" :class="project.isLiked ? 'text-red-500' : 'hover:text-slate-500'">
+                <Heart :size="26" :stroke-width="1.5" :class="project.isLiked ? 'fill-red-500' : ''" />
+              </button>
+              
               <button class="hover:text-slate-500 transition-colors"><MessageCircle :size="26" :stroke-width="1.5" /></button>
               <button class="hover:text-slate-500 transition-colors"><Send :size="26" :stroke-width="1.5" /></button>
             </div>
@@ -59,10 +63,10 @@
             </button>
           </div>
           
-          <p class="font-bold text-sm text-slate-900 dark:text-white mb-4">{{ project.reactions?.likes || 128 }} likes</p>
+          <p class="font-bold text-sm text-slate-900 dark:text-white mb-4">{{ project.reactions?.likes || 0 }} likes</p>
           
           <div class="flex items-center gap-3">
-            <img src="https://i.pravatar.cc/150?u=myprofile" class="w-8 h-8 rounded-full" />
+            <img src="https://images.unsplash.com/photo-1539125530496-3ca408f9c2d9?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-8 h-8 rounded-full object-cover" />
             <input type="text" placeholder="Add a technical comment..." 
                    class="flex-1 bg-transparent border-none px-0 py-2 text-sm focus:ring-0 outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500" />
             <button class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:text-blue-800 dark:hover:text-blue-300">Post</button>
@@ -82,16 +86,15 @@ import type { Project } from '../types/Project'
 const props = defineProps<{ project: Project }>()
 defineEmits(['close'])
 
-const techImages = [
-  '1518770660439-4636190af475', 
-  '1581091226825-a6a2a5aee158', 
-  '1498050108023-c5249f4df085',
-  '1592096304832-fa3148154e1d',
-  '1526374965328-7f61d4dc18c5', 
-  '1517077304055-6e89abbf09b0', 
-  '1581092160562-40aa08e78837', 
-  '1611162617474-5b21e879e113'
-]
+const toggleLike = () => {
+  if (props.project.isLiked) {
+    props.project.reactions.likes--;
+    props.project.isLiked = false;
+  } else {
+    props.project.reactions.likes++;
+    props.project.isLiked = true;
+  }
+}
 
 interface TechComment { user: string; text: string; }
 
