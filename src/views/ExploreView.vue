@@ -1,33 +1,42 @@
 <template>
   <div>
-    <main class="pt-8 pb-24 w-full">
-      <div class="max-w-[600px] mx-auto px-4 mb-8">
-        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-          <button 
-            v-for="f in ['All', 'Robotics', 'Hardware', 'PCB', 'C++', 'Signals', 'AI']" :key="f" @click="selectedFilter = f"
-            :class="[
-              'whitespace-nowrap px-6 py-2 rounded-full border transition-all font-bold text-sm',
-              selectedFilter === f 
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white' 
-                : 'bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600'
-            ]"
-          >
-            {{ f }}
-          </button>
-        </div>
-      </div>
-
-      <div v-if="loading" class="max-w-[600px] mx-auto px-4 space-y-8">
-        <div v-for="i in 3" :key="i" class="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 h-[500px] animate-pulse"></div>
-      </div>
-
-      <div v-else class="max-w-[600px] mx-auto px-4 space-y-8">
-        <ProjectCard 
-          v-for="p in filteredProjects" :key="p.id" :project="p" 
-          @openPost="handleOpenPost"
+    <div class="w-full max-w-[1000px] mx-auto pt-8 px-4 pb-12 bg-slate-50 dark:bg-slate-900 transition-colors duration-300 min-h-screen">
+      
+      <div class="mb-8 relative max-w-xl mx-auto">
+        <input 
+          type="text" 
+          v-model="searchQuery"
+          placeholder="Search schematics, code, or hardware..." 
+          class="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-full py-4 px-6 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500" 
         />
       </div>
-    </main>
+
+      <div v-if="loading" class="grid grid-cols-3 gap-1 md:gap-4">
+        <div v-for="i in 12" :key="i" class="aspect-square bg-slate-200 dark:bg-slate-800 animate-pulse rounded-xl"></div>
+      </div>
+
+      <div v-else-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-500 dark:text-slate-400">
+        <p class="text-lg font-bold">No projects found.</p>
+        <p class="text-sm">Try searching for different keywords.</p>
+      </div>
+
+      <div v-else class="grid grid-cols-3 gap-1 md:gap-4 auto-rows-[150px] md:auto-rows-[250px]">
+        <div 
+          v-for="(p, index) in filteredProjects" :key="p.id" :class="getGridClass(index)"
+          class="relative group overflow-hidden bg-slate-200 dark:bg-slate-800 rounded-xl shadow-sm cursor-pointer"
+          @click="handleOpenPost(p)" 
+        >
+          <img 
+            :src="p.imageUrl" 
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold backdrop-blur-[2px]">
+            <span class="flex items-center gap-2"><Heart :size="20" class="fill-white" /> {{ p.reactions?.likes || 128 }}</span>
+            <span class="flex items-center gap-2"><MessageCircle :size="20" class="fill-white" /> 14</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <PostModal v-if="selectedPost" :project="selectedPost" @close="selectedPost = null" />
   </div>
@@ -35,14 +44,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import ProjectCard from '../components/ProjectCard.vue'
+import { Heart, MessageCircle } from 'lucide-vue-next'
 import PostModal from '../components/PostModal.vue'
 import type { Project } from '../types/Project'
 
 const projects = ref<Project[]>([])
 const loading = ref(true)
-const selectedFilter = ref('All')
 const selectedPost = ref<Project | null>(null)
+const searchQuery = ref('')
 
 const techThemes = [
   // Robotics
@@ -74,31 +83,36 @@ const techThemes = [
 ]
 
 const filteredProjects = computed(() => {
-  if (selectedFilter.value === 'All') return projects.value
-  return projects.value.filter(p => p.tags.includes(selectedFilter.value))
+  if (!searchQuery.value) return projects.value;
+  const query = searchQuery.value.toLowerCase();
+  return projects.value.filter(p => 
+    (p.title && p.title.toLowerCase().includes(query)) ||
+    (p.body && p.body.toLowerCase().includes(query)) ||
+    (p.tags && p.tags.some(tag => tag.toLowerCase().includes(query)))
+  );
 })
 
-const handleOpenPost = (post: Project) => {
-  selectedPost.value = post
+const handleOpenPost = (post: Project) => selectedPost.value = post
+
+const getGridClass = (index: number) => {
+  const pos = index % 10;
+  if (pos === 2) return 'col-span-1 row-span-2'
+  if (pos === 5) return 'col-span-2 row-span-2'
+  return 'col-span-1 row-span-1'
 }
 
 onMounted(async () => {
-  try {
-    const response = await fetch('https://dummyjson.com/posts?limit=30')
-    const data = await response.json()
-    projects.value = data.posts.map((post: Project, index: number) => {
-      const theme = techThemes[index % techThemes.length]!
-      return {
-        ...post, 
-        title: theme.title, 
-        tags: theme.tags,
-        imageUrl: theme.imageUrl,
-        body: `Status Update: ${theme.title} build v1.${index} is stable. Check the documentation for pinout details.`,
-        views: Math.floor(Math.random() * 9500) + 450
-      }
-    })
-  } finally {
-    loading.value = false
-  }
+  const res = await fetch('https://dummyjson.com/posts?limit=30')
+  const data = await res.json()
+  
+  projects.value = data.posts.map((post: Project, index: number) => {
+    const theme = techThemes[index % techThemes.length]!
+    return {
+      ...post, title: theme.title, tags: theme.tags, imageUrl: theme.imageUrl,
+      body: `Status Update: ${theme.title} build v1.${index} is stable. Check the documentation for pinout details.`
+    }
+  })
+  
+  loading.value = false
 })
 </script>

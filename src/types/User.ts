@@ -15,3 +15,19 @@ export interface UserResponse {
   skip: number
   limit: number
 }
+
+export interface UserProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  image: string;
+  company: {
+    department: string;
+    title: string;
+  };
+  address: {
+    city: string;
+  };
+}

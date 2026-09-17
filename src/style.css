@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+:root {
+  background-color: white;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.router-link-active {
+  @apply text-black;
+}
+
+.router-link-active span:first-child {
+  @apply scale-110;
+}
