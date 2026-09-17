@@ -108,7 +108,7 @@ const handleLogin = async () => {
       throw new Error(data.message || 'Invalid credentials')
     }
 
-    // Success! Store token & user data
+    // Store token & user data
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data))
 

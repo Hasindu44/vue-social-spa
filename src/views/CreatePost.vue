@@ -24,7 +24,7 @@ const handlePost = async () => {
   postContent.value = '';
   selectedImage.value = null;
   isSubmitting.value = false;
-  router.push('/');
+  router.push('/user/1');
 };
 </script>
 
